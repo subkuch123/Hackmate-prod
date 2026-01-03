@@ -1,0 +1,274 @@
+import mongoose from "mongoose";
+import AutoIncrementFactory from "mongoose-sequence";
+
+const { Schema } = mongoose;
+
+// Reply Schema
+const replySchema = new Schema(
+  {
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    content: {
+      type: String,
+      required: true,
+      trim: true,
+      maxLength: 1000,
+    },
+    likes: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+    isEdited: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+// Discussion Schema
+const discussionSchema = new Schema(
+  {
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    title: {
+      type: String,
+      required: true,
+      trim: true,
+      maxLength: 200,
+    },
+    content: {
+      type: String,
+      // required: true,
+      trim: true,
+      maxLength: 2000,
+    },
+    category: {
+      type: String,
+      enum: [
+        "general",
+        "team_formation",
+        "technical",
+        "rules",
+        "submission",
+        "feedback",
+        "announcement",
+      ],
+      default: "general",
+    },
+    tags: [{ type: String, trim: true }],
+    replies: [replySchema],
+    likes: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+    views: {
+      type: Number,
+      default: 0,
+    },
+    isPinned: {
+      type: Boolean,
+      default: false,
+    },
+    isLocked: {
+      type: Boolean,
+      default: false,
+    },
+    isEdited: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+// Hackathon Schema
+const hackathonSchema = new Schema(
+  {
+    hackathonId: {
+      type: Number,
+      unique: true,
+      index: true,
+    },
+    hackName: {
+      type: String,
+      unique: true,
+      index: true,
+      required: true,
+      trim: true,
+      maxLength: 200,
+    },
+    extraDetail: {
+      type: String,
+      trim: true,
+    },
+    specialDetail: {
+      type: String,
+      trim: true,
+    },
+    title: {
+      type: String,
+      required: true,
+      trim: true,
+      maxLength: 200,
+    },
+
+    teamsFormedAt: {
+      type: Date,
+    },
+    cancelledAt: {
+      type: Date,
+    },
+    completedAt: {
+      type: Date,
+    },
+
+    description: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    registrationDeadline: { type: Date, required: true },
+    startDate: { type: Date, required: true },
+    endDate: { type: Date, required: true },
+    winnerAnnouncementDate: { type: Date },
+
+    isActive: { type: Boolean, default: true },
+
+    problemStatements: [
+      {
+        type: String,
+        required: true,
+        trim: true,
+      },
+    ],
+
+    maxTeamSize: { type: Number, default: 3, min: 1, max: 10 },
+    venue: { type: String, trim: true },
+    mode: {
+      type: String,
+      enum: ["online", "offline", "hybrid"],
+      default: "offline",
+    },
+    registrationFee: { type: Number, default: 0, min: 0 },
+
+    participants: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        default: null,
+      },
+    ],
+    prizes: [
+      {
+        position: { type: String, required: true },
+        amount: { type: Number, required: true, default: 0 },
+        rewards: String,
+      },
+    ],
+
+    minParticipantsToFormTeam: {
+      type: Number,
+      default: 2,
+      min: 0,
+      max: 100,
+    },
+
+    tags: [{ type: String, trim: true }],
+
+    totalMembersJoined: { type: Number, default: 0 },
+    maxRegistrations: { type: Number, min: 1 },
+
+    requirements: [{ type: String, trim: true }],
+    rules: [{ type: String, trim: true }],
+
+    bannerImage: { type: String, trim: true },
+
+    // Discussion Forum
+    discussions: [discussionSchema],
+
+    // Extra fields
+    evaluationCriteria: [
+      {
+        criterion: { type: String },
+        weight: { type: Number },
+      },
+    ],
+    submissionDeadline: { type: Date },
+    submissionFormat: { type: String },
+    organizer: {
+      name: { type: String },
+      contactEmail: { type: String },
+      contactNumber: { type: String },
+      organization: { type: String },
+    },
+    faqs: [
+      {
+        question: { type: String },
+        answer: { type: String },
+      },
+    ],
+    socialLinks: {
+      website: { type: String },
+      linkedin: { type: String },
+      twitter: { type: String },
+      discord: { type: String },
+    },
+
+    status: {
+      type: String,
+      enum: [
+        "registration_open",
+        "registration_closed",
+        "ongoing",
+        "winner_to_announced",
+        "completed",
+        "cancelled",
+      ],
+      default: "registration_open",
+    },
+    reason: { type: String, default: "" },
+  },
+  {
+    timestamps: true,
+    collection: "hackathons",
+  }
+);
+
+// Auto-increment hackathonId starting from 100
+const AutoIncrement = AutoIncrementFactory(mongoose);
+hackathonSchema.plugin(AutoIncrement, {
+  inc_field: "hackathonId",
+  start_seq: 100,
+});
+
+// Indexes
+hackathonSchema.index({ hackName: 1 });
+hackathonSchema.index({ startDate: 1 });
+hackathonSchema.index({ registrationDeadline: 1 });
+hackathonSchema.index({ isActive: 1 });
+hackathonSchema.index({ status: 1 });
+hackathonSchema.index({ tags: 1 });
+
+// Discussion indexes
+hackathonSchema.index({ "discussions.category": 1 });
+hackathonSchema.index({ "discussions.isPinned": 1 });
+hackathonSchema.index({ "discussions.createdAt": -1 });
+hackathonSchema.index({ "discussions.user": 1 });
+
+const Hackathon = mongoose.model("Hackathon", hackathonSchema);
+export default Hackathon;
