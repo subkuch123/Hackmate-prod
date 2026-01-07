@@ -1,4 +1,3 @@
-import { send } from "process";
 import Hackathon from "../models/hackthon.model.js";
 import PeopleJoined from "../models/peopleJoined.model.js";
 import Registration from "../models/Registration.js";
