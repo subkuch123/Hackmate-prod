@@ -1,3 +1,4 @@
+import { send } from "process";
 import Hackathon from "../models/hackthon.model.js";
 import PeopleJoined from "../models/peopleJoined.model.js";
 import Registration from "../models/Registration.js";
@@ -199,16 +200,51 @@ function generate15DigitUniqueId(keyword, email) {
 
   // Ensure 15 digits
   const uniqueId = (Date.now().toString() + hashValue.toString())
-    .replace(/\D/g, '')
+    .replace(/\D/g, "")
     .slice(0, 15);
 
   return uniqueId;
 }
+const sendTokenResponse = (user, statusCode, res, message) => {
+  const token = user.generateToken();
 
+  const options = {
+    expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+  };
+
+  const userData = {
+    id: user._id,
+    name: user.name,
+    email: user.email,
+    isEmailVerified: user.isEmailVerified,
+    profilePicture: user.profilePicture,
+    skills: user.skills,
+    experience: user.experience,
+    github: user.github,
+    age: user.age,
+    github: user.github,
+    linkedin: user.linkedin,
+    phone: user.phone,
+    currentHackathonId: user.currentHackathonId,
+    userType: user.userType,
+    createdAt: user.createdAt,
+    profileCompletion: user.profileCompletion,
+  };
+
+  res
+    .status(statusCode)
+    .cookie("token", token, options)
+    .json({
+      success: true,
+      data: { user: userData, token },
+      message,
+      errorCode: 1,
+    });
+};
 export const freeRegistration = async (req, res) => {
   try {
-    
-
     const {
       amount,
       currency = "INR",
@@ -226,6 +262,64 @@ export const freeRegistration = async (req, res) => {
         success: false,
         message: "Please provide all required fields",
       });
+    }
+
+    if (email === "email@example.com" || email === "") {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide a valid email address",
+      });
+    }
+    const randomPassword =
+      name.split(" ")[0].charAt(0).toUpperCase() +
+      name.split(" ")[0].slice(1) +
+      "@123";
+    let user = await User.findOne({ email });
+    try {
+      if (!user) {
+        user = await User.create({
+          name,
+          email,
+          phone,
+          password: randomPassword,
+          collegeName,
+        });
+      } else {
+        if (!user.collegeName && collegeName) {
+          user.collegeName = collegeName;
+          await user.save();
+        }
+        if (!user.phone && phone) {
+          user.phone = phone;
+          await user.save();
+        }
+      }
+    } catch (error) {
+      console.error("User creation/update error:", error);
+      return res.status(500).json({
+        success: false,
+        message:
+          "Failed to create/update user. Please try again." + error.message,
+      });
+    }
+
+    const registrationExists = await Registration.findOne({
+      email,
+      hackathonId,
+      isActive: true,
+      isVerified: true,
+      status: "registered",
+      isJoined: true,
+    });
+
+    if (registrationExists) {
+      sendTokenResponse(
+        user,
+        200,
+        res,
+        "You have already registered and joined this hackathon with this email."
+      );
+      return;
     }
 
     await Registration.updateMany(
@@ -249,19 +343,18 @@ export const freeRegistration = async (req, res) => {
       isActive: true,
     });
 
-    if(collegeName){
-      await User.updateOne(
-        { email },
-        { $set: { collegeName } }
-      );
-    }
-
-    res.status(201).json({
-      success: true,
-      message: "Registration successfully. Awaiting verification.",
-      orderId: registration._id, // frontend expects orderId
-      data: registration,
-    });
+    sendTokenResponse(
+      user,
+      201,
+      res,
+      "User registered successfully For hackathon"
+    );
+    // res.status(200).json({
+    //   success: true,
+    //   message: "Registration successfully. Awaiting verification.",
+    //   orderId: registration._id, // frontend expects orderId
+    //   data: registration,
+    // });
   } catch (error) {
     console.error("Registration error:", error);
 

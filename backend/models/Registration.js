@@ -63,6 +63,12 @@ const registrationSchema = new mongoose.Schema(
 );
 
 // Compound index to ensure unique registration per hackathon
-registrationSchema.index({ hackathonId: 1, email: 1 }, { unique: true });
+registrationSchema.index(
+  { hackathonId: 1, email: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { isActive: true },
+  }
+);
 
 export default mongoose.model("Registration", registrationSchema);

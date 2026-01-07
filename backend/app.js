@@ -37,7 +37,34 @@ app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 app.use(bodyParser.json());
 
 app.use(helmet());
-app.use(cors());
+const allowedOrigins = [
+  "http://localhost:8080",
+  "http://192.168.0.103:8080",
+  "https://hackmate.me",
+  "https://hackmate.codes",
+  "https://hack-mate.onrender.com",
+  "https://hack-mate.onrender.com",
+  "https://hackmate.tech",
+  "https://hackmate-dev-frontend.onrender.com",
+];
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // allow server-to-server or Postman (no origin)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 app.use(compression());
 app.use(morgan("combined", { stream: logger.stream }));
 
@@ -76,6 +103,7 @@ app.use(
   (await import("./routes/notification.routes.js")).default
 );
 app.use("/api/events", (await import("./routes/event.routes.js")).default);
+app.use("/api/utm", (await import("./routes/utm.routes.js")).default);
 
 // 404 handler
 app.use((req, res, next) => {

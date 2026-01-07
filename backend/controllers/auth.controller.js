@@ -145,7 +145,7 @@ export const register = async (req, res, next) => {
       sendTokenResponse(user, 201, res, "User registered successfully");
     } catch (error) {
       // Delete the user if email sending fails
-      await User.findByIdAndDelete(user._id);
+      // await User.findByIdAndDelete(user._id);
       console.error("Email sending failed:", error);
       const messages =
         "Email sending failed. Please provide valid Email Id or Try again later.";

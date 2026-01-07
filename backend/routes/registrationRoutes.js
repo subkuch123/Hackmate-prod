@@ -36,56 +36,56 @@ registrationRouter.get("/status", async (req, res) => {
     }
 
     // ✅ Check for pending payments (latest one)
-    const pendingOrder = await Order.findOne({
-      hackathonId,
-      email,
-      status: { $in: ["created", "pending"] },
-    }).sort({ updatedAt: -1 });
+    // const pendingOrder = await Order.findOne({
+    //   hackathonId,
+    //   email,
+    //   status: { $in: ["created", "pending"] },
+    // }).sort({ updatedAt: -1 });
 
-    if (pendingOrder) {
-      let status = "pending_payment";
-      let message = "Complete your payment to register";
+    // if (pendingOrder) {
+    //   let status = "pending_payment";
+    //   let message = "Complete your payment to register";
 
-      if (
-        pendingOrder.status === "created" &&
-        pendingOrder.paymentMethod === "qrcode"
-      ) {
-        status = "pending_verification";
-        message = "Payment verification in progress";
-      }
+    //   if (
+    //     pendingOrder.status === "created" &&
+    //     pendingOrder.paymentMethod === "qrcode"
+    //   ) {
+    //     status = "pending_verification";
+    //     message = "Payment verification in progress";
+    //   }
 
-      return res.json({
-        success: true,
-        data: {
-          status,
-          orderId: pendingOrder._id,
-          paymentMethod: pendingOrder.paymentMethod,
-          message,
-          createdAt: pendingOrder.createdAt,
-          updatedAt: pendingOrder.updatedAt,
-        },
-      });
-    }
+    //   return res.json({
+    //     success: true,
+    //     data: {
+    //       status,
+    //       orderId: pendingOrder._id,
+    //       paymentMethod: pendingOrder.paymentMethod,
+    //       message,
+    //       createdAt: pendingOrder.createdAt,
+    //       updatedAt: pendingOrder.updatedAt,
+    //     },
+    //   });
+    // }
 
     // ✅ Check for failed payments (latest one)
-    const failedOrder = await Order.findOne({
-      hackathonId,
-      email,
-      status: "failed",
-    }).sort({ updatedAt: -1 });
+    // const failedOrder = await Order.findOne({
+    //   hackathonId,
+    //   email,
+    //   status: "failed",
+    // }).sort({ updatedAt: -1 });
 
-    if (failedOrder) {
-      return res.json({
-        success: true,
-        data: {
-          status: "payment_failed",
-          orderId: failedOrder._id,
-          message: "Payment failed. Please try again.",
-          createdAt: failedOrder.createdAt,
-          updatedAt: failedOrder.updatedAt,
-        },
-      });
-    }
+    // if (failedOrder) {
+    //   return res.json({
+    //     success: true,
+    //     data: {
+    //       status: "payment_failed",
+    //       orderId: failedOrder._id,
+    //       message: "Payment failed. Please try again.",
+    //       createdAt: failedOrder.createdAt,
+    //       updatedAt: failedOrder.updatedAt,
+    //     },
+    //   });
+    // }
 
     // ✅ Not registered
     res.json({
@@ -112,9 +112,5 @@ registrationRouter.post(
 );
 registrationRouter.post("/join/:registrationId", joinUserIntoHackathon);
 
-
-registrationRouter.post(
-  "/free",
-  freeRegistration
-);
+registrationRouter.post("/free", freeRegistration);
 export default registrationRouter;

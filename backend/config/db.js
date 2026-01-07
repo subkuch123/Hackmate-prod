@@ -1,6 +1,7 @@
 import colors from "colors";
 import mongoose from "mongoose";
 import logger from "../utils/logger.js";
+import initializeSettings from "../init/initializeSettings.js";
 
 const connectDB = async () => {
   try {
@@ -14,6 +15,7 @@ const connectDB = async () => {
       `DataBase is Connected to Server ${process.env.PORT} and ${conn.connection.host}:${conn.connection.port}`
         .underline.bgBlue
     );
+    await initializeSettings();
     return conn;
   } catch (error) {
     logger.error(`Error connecting to MongoDB: ${error.message}`);
