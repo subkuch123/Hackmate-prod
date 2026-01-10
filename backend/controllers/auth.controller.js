@@ -123,36 +123,37 @@ export const register = async (req, res, next) => {
       user: { name: userData.name, email: userData.email },
       websiteLink: process.env.HOST_CLIENT_URL,
     };
-    try {
-      const mailRes = await sendMail({
-        from: '"HackMate" <no-reply@hackmate.com>',
-        email: userData.email,
-        subject: "Mail from HackMate",
-        data,
-        template: "welcome_mail.ejs",
-      });
-      // If mail is not accepted, treat as failure
-      // if (!mailRes || !mailRes.accepted || mailRes.accepted.length === 0) {
-      //   // Delete the user if email sending fails
-      //   await User.findByIdAndDelete(user._id);
-      //   const messages =
-      //     "Email sending failed. Please provide valid Email Id or Try again later.";
-      //   const message2 = Object.values(error.errors).map((err) => err.message);
-      //   const resultMessage = messages + "," + message2;
-      //   return next(next(new ValidationError(resultMessage)));
-      // }
-      // Success: send token response
-      sendTokenResponse(user, 201, res, "User registered successfully");
-    } catch (error) {
-      // Delete the user if email sending fails
-      // await User.findByIdAndDelete(user._id);
-      console.error("Email sending failed:", error);
-      const messages =
-        "Email sending failed. Please provide valid Email Id or Try again later.";
-      const message2 = Object.values(error.errors).map((err) => err.message);
-      const resultMessage = messages + "," + message2;
-      return next(next(new ValidationError(resultMessage)));
-    }
+    sendTokenResponse(user, 201, res, "User registered successfully");
+    // try {
+    //   const mailRes = await sendMail({
+    //     from: '"HackMate" <no-reply@hackmate.com>',
+    //     email: userData.email,
+    //     subject: "Mail from HackMate",
+    //     data,
+    //     template: "welcome_mail.ejs",
+    //   });
+    //   // If mail is not accepted, treat as failure
+    //   // if (!mailRes || !mailRes.accepted || mailRes.accepted.length === 0) {
+    //   //   // Delete the user if email sending fails
+    //   //   await User.findByIdAndDelete(user._id);
+    //   //   const messages =
+    //   //     "Email sending failed. Please provide valid Email Id or Try again later.";
+    //   //   const message2 = Object.values(error.errors).map((err) => err.message);
+    //   //   const resultMessage = messages + "," + message2;
+    //   //   return next(next(new ValidationError(resultMessage)));
+    //   // }
+    //   // Success: send token response
+    //   sendTokenResponse(user, 201, res, "User registered successfully");
+    // } catch (error) {
+    //   // Delete the user if email sending fails
+    //   // await User.findByIdAndDelete(user._id);
+    //   console.error("Email sending failed:", error);
+    //   const messages =
+    //     "Email sending failed. Please provide valid Email Id or Try again later.";
+    //   const message2 = Object.values(error.errors).map((err) => err.message);
+    //   const resultMessage = messages + "," + message2;
+    //   return next(next(new ValidationError(resultMessage)));
+    // }
   } catch (error) {
     if (error.name === "ValidationError") {
       const messages = Object.values(error.errors).map((err) => err.message);
